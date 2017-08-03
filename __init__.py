@@ -1,4 +1,4 @@
-import os, threading
+import os, threading, time
 from modules import cbpi
 from modules.core.hardware import SensorPassive
 
