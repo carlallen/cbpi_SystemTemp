@@ -11,17 +11,17 @@ class myThread (threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.value = 0
-        self.running = True
+        self.runnig = True
 
     def shutdown(self):
         pass
 
     def stop(self):
-        self.running = False
+        self.runnig = False
 
     def run(self):
 
-        while self.running:
+        while self.runnig:
             try:
                 app.logger.info("READ SYSTEM TEMP")
                 res = os.popen('vcgencmd measure_temp').readline()
