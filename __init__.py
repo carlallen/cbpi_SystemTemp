@@ -1,57 +1,32 @@
-import os, threading, time
-from modules import cbpi, app
-from modules.core.hardware import SensorPassive
+# -*- coding: utf-8 -*-
+from modules.core.basetypes import Sensor
+from modules.core.core import cbpi
 
+@cbpi.addon.sensor.type("System Temp Sensor")
+class SystemTemp(Sensor):
 
-class myThread (threading.Thread):
-
-    value = 0
-
-
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self.value = 0
-        self.runnig = True
-
-    def shutdown(self):
-        pass
-
-    def stop(self):
-        self.runnig = False
-
-    def run(self):
-
-        while self.runnig:
-            try:
-                app.logger.info("READ SYSTEM TEMP")
-                res = os.popen('vcgencmd measure_temp').readline()
-                temp = float(res.replace("temp=","").replace("'C\n",""))
-                self.value = temp
-            except:
-                pass
-
-            time.sleep(4)
-
-@cbpi.sensor
-class SystemTempSensor(SensorPassive):
     def init(self):
 
-        self.t = myThread()
+        if self.api.get_config_parameter("unit","C") == "C":
+            self.unit = "°C"
+        else:
+            self.unit = "°F"
 
-        def shudown():
-            shudown.cb.shutdown()
-        shudown.cb = self.t
+    def execute(self):
+        while True:
+            try:
+                self.update_value(int(self.text))
+            except:
+                pass
+            self.api.sleep(1)
 
-        self.t.start()
-
-    def stop(self):
+    def fetch_system_temp(self):
         try:
-            self.t.stop()
+            res = os.popen('vcgencmd measure_temp').readline()
+            temp = float(res.replace("temp=","").replace("'C\n",""))
+            if self.unit == "°C":
+                return round(temp, 2)
+            else:
+                return round(9.0 / 5.0 * temp + 32, 2)
         except:
             pass
-
-    def read(self):
-        if self.get_config_parameter("unit", "C") == "C":
-            self.data_received(round(self.t.value, 2))
-        else:
-            self.data_received(round(9.0 / 5.0 * self.t.value + 32, 2))
